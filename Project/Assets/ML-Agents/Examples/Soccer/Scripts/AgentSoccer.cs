@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
@@ -29,6 +30,8 @@ public class AgentSoccer : Agent
     [HideInInspector]
     public Team team;
     float m_KickPower;
+    // int m_PlayerIndex;
+    // public SoccerFieldArea area;
     // The coefficient for the reward for colliding with a ball. Set using curriculum.
     float m_BallTouch;
     public Position position;
@@ -38,6 +41,8 @@ public class AgentSoccer : Agent
     float m_LateralSpeed;
     float m_ForwardSpeed;
 
+    [HideInInspector]
+    public float timePenalty;
 
     [HideInInspector]
     public Rigidbody agentRb;
@@ -46,7 +51,15 @@ public class AgentSoccer : Agent
     public Vector3 initialPos;
     public float rotSign;
 
+    // The coefficient for the reward for colliding with a ball. Set using curriculum.
     EnvironmentParameters m_ResetParams;
+    private float ballTouchReward = 0;
+    private float opponentSpeed = 0;
+    private float opponentExist = 0;
+
+    // Opponent Only
+    private Collider opponentCollider;
+    private MeshRenderer opponentRenderer;
 
     public override void Initialize()
     {
@@ -92,11 +105,33 @@ public class AgentSoccer : Agent
         agentRb = GetComponent<Rigidbody>();
         agentRb.maxAngularVelocity = 500;
 
+        // var playerState = new PlayerState
+        // {
+        //     agentRb = agentRb,
+        //     startingPos = transform.position,
+        //     agentScript = this,
+        // };
+        // area.playerStates.Add(playerState);
+        // m_PlayerIndex = area.playerStates.IndexOf(playerState);
+        // playerState.playerIndex = m_PlayerIndex;
+
         m_ResetParams = Academy.Instance.EnvironmentParameters;
+
+        if (team == Team.Purple)
+        {
+            opponentCollider = this.GetComponent<Collider>();
+            opponentRenderer = transform.Find("AgentCube_Purple").GetComponent<MeshRenderer>();
+        }
     }
 
     public void MoveAgent(ActionSegment<int> act)
     {
+        // Opponent Exist
+        if (team == Team.Purple && opponentExist == 0)
+        {
+            return;
+        }
+
         var dirToGo = Vector3.zero;
         var rotateDir = Vector3.zero;
 
@@ -138,12 +173,19 @@ public class AgentSoccer : Agent
         }
 
         transform.Rotate(rotateDir, Time.deltaTime * 100f);
-        agentRb.AddForce(dirToGo * m_SoccerSettings.agentRunSpeed,
+
+        if (team == Team.Blue)
+        {
+            agentRb.AddForce(dirToGo * m_SoccerSettings.blueAgentRunSpeed,
             ForceMode.VelocityChange);
+        }
+        else {
+            agentRb.AddForce(dirToGo * opponentSpeed,
+            ForceMode.VelocityChange);
+        }
     }
 
     public override void OnActionReceived(ActionBuffers actionBuffers)
-
     {
 
         if (position == Position.Goalie)
@@ -156,6 +198,7 @@ public class AgentSoccer : Agent
             // Existential penalty for Strikers
             AddReward(-m_Existential);
         }
+        
         MoveAgent(actionBuffers.DiscreteActions);
     }
 
@@ -202,7 +245,11 @@ public class AgentSoccer : Agent
         }
         if (c.gameObject.CompareTag("ball"))
         {
-            AddReward(.2f * m_BallTouch);
+            if (team == Team.Blue && ballTouchReward > 0)
+            {
+                AddReward(ballTouchReward);
+            }
+
             var dir = c.contacts[0].point - transform.position;
             dir = dir.normalized;
             c.gameObject.GetComponent<Rigidbody>().AddForce(dir * force);
@@ -211,7 +258,47 @@ public class AgentSoccer : Agent
 
     public override void OnEpisodeBegin()
     {
-        m_BallTouch = m_ResetParams.GetWithDefault("ball_touch", 0);
+
+        timePenalty = 0;
+        ballTouchReward = m_ResetParams.GetWithDefault("ball_touch_reward", 0);
+        opponentSpeed = m_ResetParams.GetWithDefault("opponent_speed", m_SoccerSettings.purpleAgentRunSpeed);
+
+        // Deactivate opponent
+        if (team == Team.Purple)
+        {
+            opponentExist = m_ResetParams.GetWithDefault("opponent_exist", 1);
+            setOpponentActive(opponentExist == 1);
+        }
+
+
+        if (team == Team.Purple)
+        {
+            transform.rotation = Quaternion.Euler(0f, -90f, 0f);
+        }
+        else
+        {
+            transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+        }
+
+        Vector3 startPosition = new Vector3(initialPos.x, initialPos.y, initialPos.z + UnityEngine.Random.Range(-1.0f, 1.0f));
+        transform.position = startPosition;
+
+        agentRb.velocity = Vector3.zero;
+        agentRb.angularVelocity = Vector3.zero;
+        // SetResetParameters();
     }
 
+    private void setOpponentActive(bool isActive) {
+
+        if (team == Team.Purple)
+        {
+            opponentCollider.enabled = isActive;
+            opponentRenderer.enabled = isActive;
+        }
+    }
+
+//     public void SetResetParameters()
+//     {
+//         area.ResetBall();
+//     }
 }
