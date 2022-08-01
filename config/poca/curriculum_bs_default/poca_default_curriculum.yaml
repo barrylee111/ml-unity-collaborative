@@ -20,11 +20,11 @@ behaviors:
         gamma: 0.99
         strength: 1.0
     keep_checkpoints: 5
-    max_steps: 50000
+    max_steps: 17000000
     time_horizon: 1000
     summary_freq: 10000
     self_play:
-      save_steps: 5000
+      save_steps: 50000
       team_change: 200000
       swap_steps: 2000
       window: 10
@@ -35,7 +35,6 @@ environment_parameters:
     curriculum:
       - name: OnlyLesson
         value: 1.0
-
   opponent_speed:
     curriculum:
       - name: Lesson1 # The '-' is important as this is a list
@@ -43,9 +42,8 @@ environment_parameters:
           measure: progress
           behavior: SoccerTwos
           signal_smoothing: true
-          min_lesson_length: 1
-          threshold: 0.1
-          require_reset: true
+          min_lesson_length: 100
+          threshold: 0.05
         value: 0.25
       - name: Lesson2 # This is the start of the second lesson
         completion_criteria:
@@ -53,8 +51,7 @@ environment_parameters:
           behavior: SoccerTwos
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.2
-          require_reset: true
+          threshold: 0.1
         value: 0.5
       - name: Lesson3 # This is the start of the second lesson
         completion_criteria:
@@ -62,8 +59,7 @@ environment_parameters:
           behavior: SoccerTwos
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.3
-          require_reset: true
+          threshold: 0.15
         value: 0.75
       - name: Lesson4 # The '-' is important as this is a list
         completion_criteria:
@@ -71,8 +67,7 @@ environment_parameters:
           behavior: SoccerTwos
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.4
-          require_reset: true
+          threshold: 0.2
         value: 1.0
       - name: Lesson5 # This is the start of the second lesson
         completion_criteria:
@@ -80,8 +75,7 @@ environment_parameters:
           behavior: SoccerTwos
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.5
-          require_reset: true
+          threshold: 0.25
         value: 1.25
       - name: Lesson6 # This is the start of the second lesson
         completion_criteria:
@@ -89,8 +83,7 @@ environment_parameters:
           behavior: SoccerTwos
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.6
-          require_reset: true
+          threshold: 0.3
         value: 1.5
       - name: Lesson7 # This is the start of the second lesson
         completion_criteria:
@@ -98,8 +91,7 @@ environment_parameters:
           behavior: SoccerTwos
           signal_smoothing: true
           min_lesson_length: 100
-          threshold: 0.7
-          require_reset: true
+          threshold: 0.35
         value: 1.75
       - name: MyLastLesson
         value: 2.0
@@ -112,7 +104,6 @@ environment_parameters:
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.1
-          require_reset: true
         value: 0.3
       - name: Lesson2 # This is the start of the second lesson
         completion_criteria:
@@ -121,7 +112,6 @@ environment_parameters:
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.2
-          require_reset: true
         value: 0.2
       - name: Lesson3 # This is the start of the second lesson
         completion_criteria:
@@ -130,7 +120,6 @@ environment_parameters:
           signal_smoothing: true
           min_lesson_length: 100
           threshold: 0.3
-          require_reset: true
         value: 0.1
       - name: MyLastLesson
         value: 0.0

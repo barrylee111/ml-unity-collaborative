@@ -5,6 +5,7 @@ public class SoccerSettings : MonoBehaviour
     public Material purpleMaterial;
     public Material blueMaterial;
     public bool randomizePlayersTeamForTraining = true;
+    public float agentRunSpeed;
     public float blueAgentRunSpeed;
     public float purpleAgentRunSpeed;
 }
